@@ -1,0 +1,31 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Meadowcode{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'frontend/styles.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}" data-page="{% block page %}{% endblock %}" {% block body_attrs %}{% endblock %}>
+  <header class="topbar">
+    <a class="brand" href="/">Meadowcode</a>
+    <form class="auth-form" id="auth-form">
+      <input class="input input-small" id="auth-username" name="username" autocomplete="username" placeholder="Username">
+      <input class="input input-small" id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="Password">
+      <button class="button button-primary" type="submit">Login</button>
+    </form>
+    <div class="session" id="session" hidden>
+      <span class="session-name" id="session-name"></span>
+      <button class="button button-ghost" id="logout-button" type="button">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script src="{% static 'frontend/app.js' %}" defer></script>
+</body>
+</html>

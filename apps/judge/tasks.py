@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.utils import timezone
 
-from .services import evaluate_submission
+from .services import JudgeResult, evaluate_submission
 
 
 @shared_task(bind=True)
@@ -12,7 +12,13 @@ def run_submission(self, submission_id: int) -> dict:
     submission.status = SubmissionStatus.RUNNING
     submission.save(update_fields=("status",))
 
-    result = evaluate_submission(submission)
+    try:
+        result = evaluate_submission(submission)
+    except Exception as exc:
+        result = JudgeResult(
+            status=SubmissionStatus.INTERNAL_ERROR,
+            message=f"Judge failed unexpectedly: {exc}",
+        )
     submission.status = result.status
     submission.verdict_message = result.message
     submission.runtime_ms = result.runtime_ms

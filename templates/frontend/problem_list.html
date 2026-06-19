@@ -1,0 +1,44 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Problems | Meadowcode{% endblock %}
+{% block page %}problem-list{% endblock %}
+
+{% block content %}
+  <section class="list-shell">
+    <div class="list-toolbar">
+      <div>
+        <h1>Problems</h1>
+        <p class="muted" id="problem-count">Loading...</p>
+      </div>
+      <div class="filters">
+        <input class="input search-input" id="problem-search" placeholder="Search">
+        <div class="segment" id="difficulty-filter" aria-label="Difficulty">
+          <button class="segment-button is-active" type="button" data-difficulty="">All</button>
+          <button class="segment-button" type="button" data-difficulty="easy">Easy</button>
+          <button class="segment-button" type="button" data-difficulty="medium">Medium</button>
+          <button class="segment-button" type="button" data-difficulty="hard">Hard</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="problem-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Difficulty</th>
+            <th>Tags</th>
+            <th>Limits</th>
+          </tr>
+        </thead>
+        <tbody id="problem-list"></tbody>
+      </table>
+      <div class="empty-state" id="problem-empty" hidden>No problems found.</div>
+    </div>
+
+    <div class="pager">
+      <button class="button button-ghost" id="prev-page" type="button" disabled>Previous</button>
+      <button class="button button-ghost" id="next-page" type="button" disabled>Next</button>
+    </div>
+  </section>
+{% endblock %}

@@ -31,8 +31,7 @@ class Problem(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     statement = models.TextField()
-    input_description = models.TextField(blank=True)
-    output_description = models.TextField(blank=True)
+    examples = models.TextField(blank=True)
     constraints = models.TextField(blank=True)
     difficulty = models.CharField(
         max_length=16,

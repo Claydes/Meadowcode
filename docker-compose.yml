@@ -33,6 +33,7 @@ services:
       - .env
     volumes:
       - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - db
       - redis

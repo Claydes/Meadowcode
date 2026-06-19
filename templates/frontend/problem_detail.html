@@ -1,0 +1,53 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Problem | Meadowcode{% endblock %}
+{% block body_class %}problem-page{% endblock %}
+{% block page %}problem-detail{% endblock %}
+{% block body_attrs %}data-problem-slug="{{ problem_slug }}"{% endblock %}
+
+{% block content %}
+  <section class="problem-layout">
+    <article class="problem-pane">
+      <a class="back-link" href="/">Back to problems</a>
+      <div class="problem-heading">
+        <h1 id="problem-title">Loading...</h1>
+        <span class="difficulty-pill" id="problem-difficulty"></span>
+      </div>
+      <div class="tag-row" id="problem-tags"></div>
+
+      <section class="content-block">
+        <h2>Statement</h2>
+        <div class="prose" id="problem-statement"></div>
+      </section>
+
+      <section class="content-block" id="examples-block" hidden>
+        <h2>Examples</h2>
+        <pre class="code-block" id="problem-examples"></pre>
+      </section>
+
+      <section class="content-block" id="samples-block" hidden>
+        <h2>Samples</h2>
+        <div id="problem-samples"></div>
+      </section>
+
+      <section class="content-block" id="constraints-block" hidden>
+        <h2>Constraints</h2>
+        <div class="prose" id="problem-constraints"></div>
+      </section>
+    </article>
+
+    <aside class="editor-pane">
+      <div class="editor-toolbar">
+        <div class="language-pill">Python</div>
+        <button class="button button-ghost" id="reset-code" type="button">Reset</button>
+        <button class="button button-primary" id="submit-code" type="button">Submit</button>
+      </div>
+      <textarea class="code-editor" id="code-editor" spellcheck="false"></textarea>
+      <div class="submission-panel" id="submission-panel">
+        <div class="submission-title">Submission</div>
+        <div class="submission-status" id="submission-status">Idle</div>
+        <pre class="submission-message" id="submission-message"></pre>
+      </div>
+    </aside>
+  </section>
+{% endblock %}
