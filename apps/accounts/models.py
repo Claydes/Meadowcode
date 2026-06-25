@@ -8,7 +8,6 @@ class User(AbstractUser):
     rating = models.PositiveIntegerField(default=1200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    solved_count = models.PositiveIntegerField(default=0)
 
     REQUIRED_FIELDS = ["email"]
 

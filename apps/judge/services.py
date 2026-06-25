@@ -1,4 +1,5 @@
 import io
+import json
 import tarfile
 import time
 from dataclasses import dataclass
@@ -31,17 +32,50 @@ class JudgeRuntimeError(RuntimeError):
     pass
 
 
-PYTHON_RUN_COMMAND = [
-    "python",
-    "-I",
-    "-B",
-    "-c",
-    (
-        "import runpy, sys; "
-        "sys.stdin = open('/sandbox/input.txt', 'r', encoding='utf-8'); "
-        "runpy.run_path('/sandbox/solution.py', run_name='__main__')"
-    ),
-]
+PYTHON_FUNCTION_COMMAND = ["python", "-I", "-B", "/sandbox/runner.py"]
+
+PYTHON_FUNCTION_RUNNER = """\
+import contextlib
+import io
+import json
+from pathlib import Path
+
+
+source = Path("/sandbox/solution.py").read_text(encoding="utf-8")
+function_name = Path("/sandbox/function_name.txt").read_text(encoding="utf-8").strip()
+payload = json.loads(Path("/sandbox/input.txt").read_text(encoding="utf-8"))
+namespace = {"__name__": "submission"}
+captured_stdout = io.StringIO()
+
+with contextlib.redirect_stdout(captured_stdout):
+    exec(compile(source, "/sandbox/solution.py", "exec"), namespace)
+
+target = namespace.get(function_name)
+if not callable(target):
+    solution_class = namespace.get("Solution")
+    if solution_class is not None:
+        target = getattr(solution_class(), function_name, None)
+
+if not callable(target):
+    raise AttributeError(f"Callable '{function_name}' was not found in submission")
+
+if isinstance(payload, dict) and ("args" in payload or "kwargs" in payload):
+    args = payload.get("args", [])
+    kwargs = payload.get("kwargs", {})
+else:
+    args = [payload]
+    kwargs = {}
+
+if not isinstance(args, list):
+    raise TypeError("Test case 'args' must be a JSON array")
+if not isinstance(kwargs, dict):
+    raise TypeError("Test case 'kwargs' must be a JSON object")
+
+with contextlib.redirect_stdout(captured_stdout):
+    result = target(*args, **kwargs)
+
+print(json.dumps(result, ensure_ascii=False, separators=(",", ":"), sort_keys=True))
+"""
 
 
 def evaluate_submission(submission) -> JudgeResult:
@@ -65,11 +99,19 @@ def evaluate_submission(submission) -> JudgeResult:
     peak_memory_kb = 0
 
     for index, test_case in enumerate(test_cases, start=1):
+        configuration_error = _validate_function_test_case(test_case, index)
+        if configuration_error:
+            return JudgeResult(
+                status=SubmissionStatus.INTERNAL_ERROR,
+                message=configuration_error,
+            )
+
         result = runner.run(
             code=submission.code,
             input_data=test_case.input_data,
             time_limit_ms=submission.problem.time_limit_ms,
             memory_limit_mb=submission.problem.memory_limit_mb,
+            function_name=submission.problem.function_name,
         )
         total_runtime_ms += result.runtime_ms
         peak_memory_kb = max(peak_memory_kb, result.memory_kb or 0)
@@ -107,7 +149,7 @@ def evaluate_submission(submission) -> JudgeResult:
                 memory_kb=peak_memory_kb or None,
             )
 
-        if _normalize_output(result.stdout) != _normalize_output(test_case.expected_output):
+        if not _outputs_equal(result.stdout, test_case.expected_output):
             return JudgeResult(
                 status=SubmissionStatus.WRONG_ANSWER,
                 message=_format_wrong_answer(index, test_case.expected_output, result.stdout),
@@ -135,6 +177,7 @@ class DockerPythonRunner:
         input_data: str,
         time_limit_ms: int,
         memory_limit_mb: int,
+        function_name: str = "solve",
     ) -> TestCaseRunResult:
         client = _get_docker_client()
         self._ensure_image(client)
@@ -146,7 +189,7 @@ class DockerPythonRunner:
         try:
             container = client.containers.create(
                 image=self.image,
-                command=PYTHON_RUN_COMMAND,
+                command=PYTHON_FUNCTION_COMMAND,
                 detach=True,
                 environment={
                     "PYTHONDONTWRITEBYTECODE": "1",
@@ -161,19 +204,33 @@ class DockerPythonRunner:
                 working_dir="/sandbox",
                 **_resource_limits(memory_limit_mb),
             )
-            container.put_archive("/", _build_submission_archive(code, input_data))
+            container.put_archive(
+                "/",
+                _build_submission_archive(
+                    code,
+                    input_data,
+                    function_name=function_name,
+                ),
+            )
             started_at = time.monotonic()
             container.start()
             wait_result = container.wait(timeout=timeout_seconds)
             runtime_ms = _elapsed_ms(started_at)
             container.reload()
 
-            stdout_bytes = container.logs(stdout=True, stderr=False)
-            stderr_bytes = container.logs(stdout=False, stderr=True)
-            output_limit_exceeded = (
-                len(stdout_bytes) > self.output_limit_bytes
-                or len(stderr_bytes) > self.output_limit_bytes
+            stdout_bytes, stdout_limit_exceeded = _read_limited_logs(
+                container,
+                stdout=True,
+                stderr=False,
+                limit=self.output_limit_bytes,
             )
+            stderr_bytes, stderr_limit_exceeded = _read_limited_logs(
+                container,
+                stdout=False,
+                stderr=True,
+                limit=self.output_limit_bytes,
+            )
+            output_limit_exceeded = stdout_limit_exceeded or stderr_limit_exceeded
 
             state = container.attrs.get("State", {})
             return TestCaseRunResult(
@@ -245,12 +302,29 @@ def _resource_limits(memory_limit_mb: int) -> dict:
     return limits
 
 
-def _build_submission_archive(code: str, input_data: str) -> bytes:
+def _build_submission_archive(
+    code: str,
+    input_data: str,
+    *,
+    function_name: str = "solve",
+) -> bytes:
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w") as archive:
         _add_directory(archive, "sandbox")
         _add_text_file(archive, "sandbox/solution.py", code, mode=0o444)
         _add_text_file(archive, "sandbox/input.txt", input_data, mode=0o444)
+        _add_text_file(
+            archive,
+            "sandbox/function_name.txt",
+            function_name,
+            mode=0o444,
+        )
+        _add_text_file(
+            archive,
+            "sandbox/runner.py",
+            PYTHON_FUNCTION_RUNNER,
+            mode=0o444,
+        )
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -318,8 +392,68 @@ def _decode_limited(payload: bytes, limit: int) -> str:
     return payload[:limit].decode("utf-8", errors="replace")
 
 
+def _read_limited_logs(
+    container,
+    *,
+    stdout: bool,
+    stderr: bool,
+    limit: int,
+) -> tuple[bytes, bool]:
+    chunks = []
+    captured = 0
+    exceeded = False
+    stream = container.logs(stdout=stdout, stderr=stderr, stream=True)
+
+    try:
+        for chunk in stream:
+            if not chunk:
+                continue
+
+            available = max(0, limit - captured)
+            if available:
+                chunks.append(chunk[:available])
+                captured += min(len(chunk), available)
+
+            if len(chunk) > available:
+                exceeded = True
+                break
+    finally:
+        close = getattr(stream, "close", None)
+        if close:
+            close()
+
+    return b"".join(chunks), exceeded
+
+
 def _normalize_output(value: str) -> str:
     return "\n".join(line.rstrip() for line in value.strip().splitlines())
+
+
+def _validate_function_test_case(test_case, index: int) -> str | None:
+    try:
+        payload = json.loads(test_case.input_data)
+    except json.JSONDecodeError as exc:
+        return f"Test case #{index} has invalid input JSON: {exc.msg}."
+
+    if isinstance(payload, dict) and ("args" in payload or "kwargs" in payload):
+        if not isinstance(payload.get("args", []), list):
+            return f"Test case #{index} field 'args' must be a JSON array."
+        if not isinstance(payload.get("kwargs", {}), dict):
+            return f"Test case #{index} field 'kwargs' must be a JSON object."
+
+    try:
+        json.loads(test_case.expected_output)
+    except json.JSONDecodeError as exc:
+        return f"Test case #{index} has invalid expected output JSON: {exc.msg}."
+
+    return None
+
+
+def _outputs_equal(actual: str, expected: str) -> bool:
+    try:
+        return json.loads(actual) == json.loads(expected)
+    except json.JSONDecodeError:
+        return False
 
 
 def _classify_python_error(stderr: str, statuses):

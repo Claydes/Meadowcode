@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .models import Problem, Tag, TestCase
@@ -17,6 +18,7 @@ class TestCaseSerializer(serializers.ModelSerializer):
 
 class ProblemSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
+    is_solved = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     tag_ids = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
@@ -31,6 +33,7 @@ class ProblemSerializer(serializers.ModelSerializer):
         model = Problem
         fields = (
             "id",
+            "is_solved",
             "author",
             "tags",
             "tag_ids",
@@ -40,6 +43,9 @@ class ProblemSerializer(serializers.ModelSerializer):
             "statement",
             "examples",
             "constraints",
+            "function_name",
+            "function_arguments",
+            "starter_code",
             "difficulty",
             "time_limit_ms",
             "memory_limit_mb",
@@ -49,6 +55,11 @@ class ProblemSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id", "author", "created_at", "updated_at")
 
+    @extend_schema_field(TestCaseSerializer(many=True))
     def get_samples(self, obj):
         sample_cases = obj.test_cases.filter(is_sample=True)
         return TestCaseSerializer(sample_cases, many=True).data
+
+    @extend_schema_field(serializers.BooleanField)
+    def get_is_solved(self, obj) -> bool:
+        return bool(getattr(obj, "is_solved", False))

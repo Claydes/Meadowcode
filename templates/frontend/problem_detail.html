@@ -34,11 +34,40 @@
         <h2>Constraints</h2>
         <div class="prose" id="problem-constraints"></div>
       </section>
+
+      <section class="submission-history-section">
+        <div class="submission-history-heading">
+          <h2>Submission history</h2>
+          <span class="muted" id="submission-history-count"></span>
+        </div>
+        <div class="submission-history-login" id="submission-history-login">Login to view submissions.</div>
+        <div class="submission-history-list" id="submission-history-list"></div>
+      </section>
+
+      <section class="discussion-section">
+        <div class="discussion-heading">
+          <h2>Discussions</h2>
+          <span class="muted" id="discussion-count"></span>
+        </div>
+
+        <form class="discussion-composer" id="thread-form">
+          <input class="input" id="thread-title" name="title" maxlength="255" placeholder="Discussion title" required>
+          <textarea class="input discussion-textarea" id="thread-body" name="body" placeholder="Write a discussion" required></textarea>
+          <div class="composer-footer">
+            <span class="muted" id="discussion-login-note">Login to post.</span>
+            <button class="button button-primary" type="submit">Post discussion</button>
+          </div>
+        </form>
+
+        <div class="discussion-list" id="discussion-list">
+          <div class="discussion-loading">Loading discussions...</div>
+        </div>
+      </section>
     </article>
 
     <aside class="editor-pane">
       <div class="editor-toolbar">
-        <div class="language-pill">Python</div>
+        <div class="language-pill">Python <span id="entry-point"></span></div>
         <button class="button button-ghost" id="reset-code" type="button">Reset</button>
         <button class="button button-primary" id="submit-code" type="button">Submit</button>
       </div>
@@ -50,4 +79,32 @@
       </div>
     </aside>
   </section>
+
+  <dialog class="submission-dialog" id="submission-detail-dialog">
+    <div class="submission-dialog-header">
+      <div>
+        <div class="submission-dialog-eyebrow">Submission</div>
+        <h2 id="submission-detail-title"></h2>
+      </div>
+      <button class="dialog-close" id="submission-detail-close" type="button" title="Close" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="submission-detail-grid">
+      <div><span>Status</span><strong id="submission-detail-status"></strong></div>
+      <div><span>Language</span><strong id="submission-detail-language"></strong></div>
+      <div><span>Runtime</span><strong id="submission-detail-runtime"></strong></div>
+      <div><span>Memory</span><strong id="submission-detail-memory"></strong></div>
+      <div><span>Submitted</span><strong id="submission-detail-created"></strong></div>
+      <div><span>Judged</span><strong id="submission-detail-judged"></strong></div>
+    </div>
+
+    <section class="submission-detail-block">
+      <h3>Verdict</h3>
+      <pre id="submission-detail-message"></pre>
+    </section>
+    <section class="submission-detail-block">
+      <h3>Code</h3>
+      <pre class="submission-detail-code" id="submission-detail-code"></pre>
+    </section>
+  </dialog>
 {% endblock %}

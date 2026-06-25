@@ -590,7 +590,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Two Sum\",\n  \"slug\": \"two-sum\",\n  \"statement\": \"Given two integers, output their sum.\",\n  \"examples\": \"Input: 2 3\\nOutput: 5\",\n  \"constraints\": \"-10^9 <= a, b <= 10^9\",\n  \"difficulty\": \"easy\",\n  \"time_limit_ms\": 1000,\n  \"memory_limit_mb\": 128,\n  \"is_published\": true,\n  \"tag_ids\": [{{tag_id}}]\n}",
+              "raw": "{\n  \"title\": \"Two Sum\",\n  \"slug\": \"two-sum\",\n  \"statement\": \"Return indices of two numbers whose sum equals target.\",\n  \"examples\": \"nums = [2, 7, 11, 15], target = 9\\nResult: [0, 1]\",\n  \"constraints\": \"2 <= nums.length <= 10000\",\n  \"function_name\": \"two_sum\",\n  \"function_arguments\": \"nums, target\",\n  \"starter_code\": \"def two_sum(nums, target):\\n    pass\\n\",\n  \"difficulty\": \"easy\",\n  \"time_limit_ms\": 1000,\n  \"memory_limit_mb\": 128,\n  \"is_published\": true,\n  \"tag_ids\": [{{tag_id}}]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -641,7 +641,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Two Sum\",\n  \"slug\": \"{{problem_slug}}\",\n  \"statement\": \"Given two integers, output their sum.\",\n  \"examples\": \"Input: 2 3\\nOutput: 5\",\n  \"constraints\": \"-10^9 <= a, b <= 10^9\",\n  \"difficulty\": \"easy\",\n  \"time_limit_ms\": 1000,\n  \"memory_limit_mb\": 128,\n  \"is_published\": true,\n  \"tag_ids\": [{{tag_id}}]\n}",
+              "raw": "{\n  \"title\": \"Two Sum\",\n  \"slug\": \"{{problem_slug}}\",\n  \"statement\": \"Return indices of two numbers whose sum equals target.\",\n  \"examples\": \"nums = [2, 7, 11, 15], target = 9\\nResult: [0, 1]\",\n  \"constraints\": \"2 <= nums.length <= 10000\",\n  \"function_name\": \"two_sum\",\n  \"function_arguments\": \"nums, target\",\n  \"starter_code\": \"def two_sum(nums, target):\\n    pass\\n\",\n  \"difficulty\": \"easy\",\n  \"time_limit_ms\": 1000,\n  \"memory_limit_mb\": 128,\n  \"is_published\": true,\n  \"tag_ids\": [{{tag_id}}]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -777,7 +777,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"problem\": {{problem_id}},\n  \"language\": \"python\",\n  \"code\": \"a, b = map(int, input().split())\\nprint(a + b)\\n\"\n}",
+              "raw": "{\n  \"problem\": {{problem_id}},\n  \"language\": \"python\",\n  \"code\": \"def two_sum(nums, target):\\n    seen = {}\\n    for index, value in enumerate(nums):\\n        if target - value in seen:\\n            return [seen[target - value], index]\\n        seen[value] = index\\n\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -828,7 +828,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"problem\": {{problem_id}},\n  \"language\": \"python\",\n  \"code\": \"print(input())\\n\"\n}",
+              "raw": "{\n  \"problem\": {{problem_id}},\n  \"language\": \"python\",\n  \"code\": \"def two_sum(nums, target):\\n    return [0, 1]\\n\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -861,7 +861,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"print(input())\\n\"\n}",
+              "raw": "{\n  \"code\": \"def two_sum(nums, target):\\n    return [0, 1]\\n\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

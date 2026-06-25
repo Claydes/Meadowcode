@@ -1,4 +1,3 @@
-from django.db import IntegrityError
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -36,19 +35,11 @@ class ContestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def join(self, request, slug=None):
         contest = self.get_object()
-        try:
-            registration = ContestRegistration.objects.create(
-                contest=contest,
-                user=request.user,
-            )
-        except IntegrityError:
-            registration = ContestRegistration.objects.get(
-                contest=contest,
-                user=request.user,
-            )
-            response_status = status.HTTP_200_OK
-        else:
-            response_status = status.HTTP_201_CREATED
+        registration, created = ContestRegistration.objects.get_or_create(
+            contest=contest,
+            user=request.user,
+        )
+        response_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
 
         serializer = ContestRegistrationSerializer(registration)
         return Response(serializer.data, status=response_status)

@@ -7,6 +7,8 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    solved_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -17,9 +19,13 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "bio",
             "rating",
+            "solved_count",
             "date_joined",
         )
-        read_only_fields = ("id", "rating", "date_joined")
+        read_only_fields = ("id", "rating", "solved_count", "date_joined")
+
+    def get_solved_count(self, obj) -> int:
+        return obj.problem_progress.count()
 
 
 class RegisterSerializer(serializers.ModelSerializer):

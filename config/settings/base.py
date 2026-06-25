@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_spectacular",
     "django_filters",
     "apps.accounts",
     "apps.problems",
@@ -120,6 +121,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ),
@@ -128,8 +130,31 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("DRF_ANON_THROTTLE_RATE", "100/min"),
+        "user": os.getenv("DRF_USER_THROTTLE_RATE", "1000/min"),
+        "auth": os.getenv("DRF_AUTH_THROTTLE_RATE", "20/min"),
+        "submissions": os.getenv("DRF_SUBMISSION_THROTTLE_RATE", "30/min"),
+        "discussions": os.getenv("DRF_DISCUSSION_THROTTLE_RATE", "60/min"),
+    },
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": int(os.getenv("DRF_PAGE_SIZE", "20")),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Meadowcode API",
+    "DESCRIPTION": "API for a LeetCode-like coding platform.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "AUTHENTICATION_WHITELIST": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
 
 SIMPLE_JWT = {

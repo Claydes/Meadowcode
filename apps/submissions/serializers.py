@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Submission
+from .models import Language, Submission
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
@@ -34,3 +34,17 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "created_at",
             "judged_at",
         )
+
+    def validate_language(self, value):
+        if value != Language.PYTHON:
+            raise serializers.ValidationError(
+                "Only Python submissions are supported right now."
+            )
+        return value
+
+    def validate_problem(self, value):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if value.is_published or (user and user.is_staff):
+            return value
+        raise serializers.ValidationError("Cannot submit to an unpublished problem.")

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Problem, Tag, TestCase
+from .models import Problem, Tag, TestCase, UserProblemProgress
 
 
 class TestCaseInline(admin.TabularInline):
@@ -18,7 +18,13 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Problem)
 class ProblemAdmin(admin.ModelAdmin):
     inlines = [TestCaseInline]
-    list_display = ("title", "difficulty", "is_published", "created_at")
+    list_display = (
+        "title",
+        "function_name",
+        "difficulty",
+        "is_published",
+        "created_at",
+    )
     list_filter = ("difficulty", "is_published", "tags")
     prepopulated_fields = {"slug": ("title",)}
     search_fields = ("title", "statement")
@@ -28,3 +34,11 @@ class ProblemAdmin(admin.ModelAdmin):
 class TestCaseAdmin(admin.ModelAdmin):
     list_display = ("problem", "is_sample", "order")
     list_filter = ("is_sample",)
+
+
+@admin.register(UserProblemProgress)
+class UserProblemProgressAdmin(admin.ModelAdmin):
+    list_display = ("user", "problem", "solved_at", "first_accepted_submission")
+    list_filter = ("solved_at",)
+    search_fields = ("user__username", "problem__title")
+    readonly_fields = ("solved_at",)

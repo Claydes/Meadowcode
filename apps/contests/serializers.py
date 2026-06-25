@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.problems.serializers import ProblemSerializer
@@ -41,6 +42,7 @@ class ContestSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id", "created_by", "created_at", "updated_at")
 
+    @extend_schema_field(ContestProblemSerializer(many=True))
     def get_contest_problems(self, obj):
         queryset = ContestProblem.objects.select_related("problem").filter(contest=obj)
         return ContestProblemSerializer(queryset, many=True).data

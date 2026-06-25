@@ -1,8 +1,9 @@
+from django.db.models import BooleanField, Exists, OuterRef, Value
 from rest_framework import viewsets
 
 from apps.core.permissions import IsAdminOrReadOnly
 
-from .models import Problem, Tag
+from .models import Problem, Tag, UserProblemProgress
 from .serializers import ProblemSerializer, TagSerializer
 
 
@@ -28,6 +29,18 @@ class ProblemViewSet(viewsets.ModelViewSet):
             .prefetch_related("tags", "test_cases")
             .all()
         )
+
+        if self.request.user.is_authenticated:
+            solved_progress = UserProblemProgress.objects.filter(
+                user=self.request.user,
+                problem_id=OuterRef("pk"),
+            )
+            queryset = queryset.annotate(is_solved=Exists(solved_progress))
+        else:
+            queryset = queryset.annotate(
+                is_solved=Value(False, output_field=BooleanField())
+            )
+
         if self.request.user.is_staff:
             return queryset
         return queryset.filter(is_published=True)

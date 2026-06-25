@@ -10,3 +10,7 @@ def test_problem_detail_page_renders(client):
 
     assert response.status_code == 200
     assert b"code-editor" in response.content
+    assert b"submission-history-list" in response.content
+    assert b"submission-detail-dialog" in response.content
+    assert b"thread-form" in response.content
+    assert b"discussion-list" in response.content

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -33,6 +34,27 @@ class Problem(models.Model):
     statement = models.TextField()
     examples = models.TextField(blank=True)
     constraints = models.TextField(blank=True)
+    function_name = models.CharField(
+        max_length=100,
+        default="solve",
+        validators=[
+            RegexValidator(
+                regex=r"^[A-Za-z_][A-Za-z0-9_]*$",
+                message="Function name must be a valid Python identifier.",
+            )
+        ],
+    )
+    function_arguments = models.CharField(
+        max_length=255,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r"^$|^[A-Za-z_][A-Za-z0-9_]*(,\s*[A-Za-z_][A-Za-z0-9_]*)*$",
+                message="Arguments must be comma-separated Python identifiers.",
+            )
+        ],
+    )
+    starter_code = models.TextField(blank=True)
     difficulty = models.CharField(
         max_length=16,
         choices=Difficulty.choices,
@@ -49,6 +71,39 @@ class Problem(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class UserProblemProgress(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="problem_progress",
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="user_progress",
+    )
+    first_accepted_submission = models.ForeignKey(
+        "submissions.Submission",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="first_accept_progress",
+    )
+    solved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-solved_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "problem"),
+                name="unique_user_problem_progress",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user} solved {self.problem}"
 
 
 class TestCase(models.Model):
