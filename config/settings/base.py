@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     "apps.problems",
     "apps.submissions",
     "apps.judge",
-    "apps.contests",
     "apps.discussions",
     "apps.core",
 ]

@@ -1,10 +1,6 @@
-from datetime import timedelta
-
 import pytest
-from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.contests.models import Contest
 from apps.problems.models import Difficulty, Problem
 from apps.submissions.models import Language, Submission
 
@@ -95,25 +91,3 @@ def submission_factory(user_factory, problem_factory):
         return Submission.objects.create(**defaults)
 
     return create_submission
-
-
-@pytest.fixture
-def contest_factory():
-    counter = 0
-
-    def create_contest(**kwargs):
-        nonlocal counter
-        counter += 1
-        now = timezone.now()
-        defaults = {
-            "title": f"Contest {counter}",
-            "slug": f"contest-{counter}",
-            "description": "",
-            "starts_at": now - timedelta(hours=1),
-            "ends_at": now + timedelta(hours=1),
-            "is_public": True,
-        }
-        defaults.update(kwargs)
-        return Contest.objects.create(**defaults)
-
-    return create_contest

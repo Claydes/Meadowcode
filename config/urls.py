@@ -56,7 +56,6 @@ urlpatterns = [
     path("api/accounts/", include("apps.accounts.urls")),
     path("api/problems/", include("apps.problems.urls")),
     path("api/submissions/", include("apps.submissions.urls")),
-    path("api/contests/", include("apps.contests.urls")),
     path("api/discussions/", include("apps.discussions.urls")),
 ]
 
